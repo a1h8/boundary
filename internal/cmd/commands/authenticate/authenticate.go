@@ -1,6 +1,11 @@
 package authenticate
 
 import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/boundary/api/authmethods"
 	"github.com/hashicorp/boundary/internal/cmd/base"
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/go-wordwrap"
@@ -22,11 +27,19 @@ func (c *Command) Help() string {
 		"",
 		"  This command authenticates the Boundary commandline client using a specified auth method. Examples:",
 		"",
-		"    Authenticate with a password auth method:",
+		"    Authenticate with the primary auth method in the global scope:",
 		"",
-		"      $ boundary authenticate password -auth-method-id ampw_1234567890 -login-name foo",
+		"      $ boundary authenticate",
 		"",
-		"    Authenticate with an OIDC auth method:",
+		"    Authenticate using the primary auth method in a specific scope",
+		"",
+		"      $ boundary authenticate password -scope-id o_1234567890",
+		"",
+		"    Authenticate with a password auth method using a specific auth method ID:",
+		"",
+		"      $ boundary authenticate password -auth-method-id ampw_1234567890",
+		"",
+		"    Authenticate with an OIDC auth method using a specific auth method ID:",
 		"",
 		"      $ boundary authenticate oidc -auth-method-id amoidc_1234567890",
 		"",
@@ -35,5 +48,42 @@ func (c *Command) Help() string {
 }
 
 func (c *Command) Run(args []string) int {
-	return cli.RunResultHelp
+	client, err := c.Client(base.WithNoTokenScope(), base.WithNoTokenValue())
+	if c.WrapperCleanupFunc != nil {
+		defer func() {
+			if err := c.WrapperCleanupFunc(); err != nil {
+				c.PrintCliError(fmt.Errorf("Error cleaning kms wrapper: %w", err))
+			}
+		}()
+	}
+	if err != nil {
+		c.PrintCliError(fmt.Errorf("Error creating API client: %w", err))
+		return base.CommandCliError
+	}
+
+	// Lookup the primary auth method ID in the global scope
+	aClient := authmethods.NewClient(client)
+	pri, err := getPrimaryAuthMethodId(c.Context, aClient, "global", "")
+	if err != nil {
+		c.PrintCliError(errors.New("Error looking up primary auth method ID for global scope. Try setting primary auth method for global scope, or use a auth method subcommand (see 'boundary authenticate -h' for available sub command usage)."))
+		return base.CommandUserError
+	}
+
+	c.FlagAuthMethodId = pri
+
+	switch {
+	case strings.HasPrefix(c.FlagAuthMethodId, "ampw"):
+		cmd := PasswordCommand{Command: c.Command}
+		cmd.Run([]string{})
+
+	case strings.HasPrefix(c.FlagAuthMethodId, "amoidc"):
+		cmd := OidcCommand{Command: c.Command}
+		cmd.Run([]string{})
+
+	default:
+		c.PrintCliError(fmt.Errorf("Invalid auth method ID prefix '%s'. Only 'ampw' (password) and 'amoidc' (OIDC) auth method prefixes are supported.", c.FlagAuthMethodId))
+		return cli.RunResultHelp
+	}
+
+	return 0
 }
