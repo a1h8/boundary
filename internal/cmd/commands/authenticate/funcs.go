@@ -117,7 +117,7 @@ func getPrimaryAuthMethodId(ctx context.Context, client *authmethods.Client, sco
 	for _, m := range authMethodListResult.GetItems() {
 		if m.IsPrimary {
 			if !strings.HasPrefix(m.Id, amType) {
-				return "", fmt.Errorf("Error looking up primary auth method in scope '%s': got '%s' but the command requires a auth method prefix of '%s'. Make sure the sub command you're using matches the primary auth method type in the scope being used. For example, if using the password sub command the primary auth method must have prefix 'ampw'.\n\nSee 'boundary authenticate -h' for available sub command usage.", scopeId, m.Id, amType)
+				return "", fmt.Errorf("Error looking up primary auth method in scope '%s': got '%s' but the command requires an auth method prefix of '%s'. Make sure the sub command you're using matches the primary auth method type in the scope being used. For example, if using the password sub command the primary auth method must have a prefix of 'ampw'.\n\nSee 'boundary authenticate -h' for available sub command usage.", scopeId, m.Id, amType)
 			}
 
 			return m.Id, nil
