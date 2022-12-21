@@ -123,5 +123,5 @@ func getPrimaryAuthMethodId(ctx context.Context, client *authmethods.Client, sco
 			return m.Id, nil
 		}
 	}
-	return "", fmt.Errorf("Primary auth method not found for scope ID: %s. Please set a primary auth method on this scope or pass one explicitly using an authenticate sub command (see 'boundary authenticate -h') along with the -auth-method-id flag.", scopeId)
+	return "", fmt.Errorf("Primary auth method not found for scope ID: '%s'. Please set a primary auth method on this scope or pass one explicitly using an authenticate sub command (see 'boundary authenticate -h') along with the -auth-method-id flag.", scopeId)
 }
