@@ -63,7 +63,7 @@ func (c *Command) Run(args []string) int {
 
 	// Lookup the primary auth method ID in the global scope
 	aClient := authmethods.NewClient(client)
-	pri, err := getPrimaryAuthMethodId(c.Context, aClient, "global", "")
+	pri, err := getPrimaryAuthMethodId(c.Context, aClient, scope.Global.String(), "")
 	if err != nil {
 		c.PrintCliError(errors.New("Error looking up primary auth method ID for the global scope. Try setting a primary auth method for the global scope, or use an auth method subcommand (see 'boundary authenticate -h' for available sub command usage)."))
 		return base.CommandUserError
