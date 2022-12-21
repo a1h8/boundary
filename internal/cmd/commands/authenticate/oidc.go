@@ -98,7 +98,7 @@ func (c *OidcCommand) Run(args []string) int {
 	if c.FlagAuthMethodId == "" {
 		// if flag for scope is empty try looking up global
 		if c.FlagScopeId == "" {
-			c.FlagScopeId = "global"
+			c.FlagScopeId = scope.Global.String()
 		}
 
 		pri, err := getPrimaryAuthMethodId(c.Context, aClient, c.FlagScopeId, "amoidc")
