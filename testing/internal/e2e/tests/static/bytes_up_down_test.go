@@ -71,9 +71,7 @@ func TestCliBytesUpDownTransferData(t *testing.T) {
 	bytesDown := 0
 	t.Log("Reading bytes_up/bytes_down values...")
 	for i := 0; i < 3; i++ {
-		if i != 0 {
-			time.Sleep(2 * time.Second)
-		}
+		time.Sleep(2 * time.Second)
 
 		output := e2e.RunCommand(ctx, "boundary",
 			e2e.WithArgs("sessions", "read", "-id", session.Id, "-format", "json"),
